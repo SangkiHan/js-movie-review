@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _id, _poster_path, _title, _vote_average, _MovieModel_instances, cal_vote_average_fn, _total_pages, _total_results, _page, _movieModels, _includeAdult, _includeVideo, _page2, _sortBy, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn;
+var _id, _posterPath, _title, _voteAverage, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _includeAdult, _includeVideo, _page2, _sortBy, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn;
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -51,54 +51,54 @@ const _MovieModel = class _MovieModel {
   constructor(result) {
     __privateAdd(this, _MovieModel_instances);
     __privateAdd(this, _id);
-    __privateAdd(this, _poster_path);
+    __privateAdd(this, _posterPath);
     __privateAdd(this, _title);
-    __privateAdd(this, _vote_average);
+    __privateAdd(this, _voteAverage);
     __privateSet(this, _id, result.id);
-    __privateSet(this, _poster_path, _MovieModel.IMAGE_URL + result.poster_path);
+    __privateSet(this, _posterPath, _MovieModel.IMAGE_URL + result.poster_path);
     __privateSet(this, _title, result.title);
-    __privateSet(this, _vote_average, __privateMethod(this, _MovieModel_instances, cal_vote_average_fn).call(this, result.vote_average));
+    __privateSet(this, _voteAverage, __privateMethod(this, _MovieModel_instances, formatToTwoDecimals_fn).call(this, result.vote_average));
   }
   get id() {
     return __privateGet(this, _id);
   }
-  get poster_path() {
-    return __privateGet(this, _poster_path);
+  get posterPath() {
+    return __privateGet(this, _posterPath);
   }
   get title() {
     return __privateGet(this, _title);
   }
-  get vote_average() {
-    return __privateGet(this, _vote_average);
+  get voteAverage() {
+    return __privateGet(this, _voteAverage);
   }
 };
 _id = new WeakMap();
-_poster_path = new WeakMap();
+_posterPath = new WeakMap();
 _title = new WeakMap();
-_vote_average = new WeakMap();
+_voteAverage = new WeakMap();
 _MovieModel_instances = new WeakSet();
-cal_vote_average_fn = function(vote_average) {
-  return Number(vote_average).toFixed(1);
+formatToTwoDecimals_fn = function(voteAverage) {
+  return Number(voteAverage).toFixed(1);
 };
 __publicField(_MovieModel, "IMAGE_URL", "https://image.tmdb.org/t/p/w440_and_h660_face");
 let MovieModel = _MovieModel;
 class MovieListModel {
   constructor(response) {
-    __privateAdd(this, _total_pages);
-    __privateAdd(this, _total_results);
+    __privateAdd(this, _totalPages);
+    __privateAdd(this, _totalResults);
     __privateAdd(this, _page);
     __privateAdd(this, _movieModels);
     console.log(response);
     __privateSet(this, _page, response.page);
-    __privateSet(this, _total_results, response.total_results);
-    __privateSet(this, _total_pages, response.total_pages);
+    __privateSet(this, _totalPages, response.total_results);
+    __privateSet(this, _totalPages, response.total_pages);
     __privateSet(this, _movieModels, []);
     response.results.forEach((result) => {
       __privateGet(this, _movieModels).push(new MovieModel(result));
     });
   }
-  get total_results() {
-    return __privateGet(this, _total_results);
+  get totalResults() {
+    return __privateGet(this, _totalResults);
   }
   get movieModels() {
     return __privateGet(this, _movieModels);
@@ -107,11 +107,11 @@ class MovieListModel {
     return __privateGet(this, _page);
   }
   isLastPage() {
-    return __privateGet(this, _total_pages) === __privateGet(this, _page);
+    return __privateGet(this, _totalResults) === __privateGet(this, _page);
   }
 }
-_total_pages = new WeakMap();
-_total_results = new WeakMap();
+_totalPages = new WeakMap();
+_totalResults = new WeakMap();
 _page = new WeakMap();
 _movieModels = new WeakMap();
 const BASE_URL = "https://api.themoviedb.org/3/discover/movie";
@@ -169,19 +169,19 @@ function createTitle(title) {
 }
 function createMovie(movieInstance) {
   const item = document.createElement("li");
-  const starImagePath = movieInstance.vote_average === "0.0" ? starImage["empty"] : starImage["filled"];
+  const starImagePath = movieInstance.voteAverage === "0.0" ? starImage["empty"] : starImage["filled"];
   item.innerHTML = /*html*/
   `
     <div class="item">
         <img
             class="thumbnail"
-            src=${movieInstance.poster_path}
+            src=${movieInstance.posterPath}
             alt=${movieInstance.title}
         />
         <div class="item-desc">
             <p class="rate">
             <img src="${starImagePath}" class="star" /><span
-                >${movieInstance.vote_average}</span
+                >${movieInstance.voteAverage}</span
             >
             </p>
             <strong>${movieInstance.title}</strong>
