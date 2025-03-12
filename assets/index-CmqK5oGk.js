@@ -133,8 +133,8 @@ async function movieApiCall(movieApiQuery) {
   }
 }
 const starImage = {
-  filled: "./templates/images/star_filled.png",
-  empty: "./templates/images/star_empty.png"
+  filled: "star_filled.png",
+  empty: "star_empty.png"
 };
 function initMovieRender(movieListInstance, title) {
   const movieSection = document.querySelector(".movie-list");
