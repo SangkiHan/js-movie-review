@@ -232,7 +232,7 @@ function initHeader(movieInstance) {
             <div class="top-rated-container">
                 <div class="top-bar">
                     <h1 class="logo">
-                        <img src="./images/logo.png" alt="MovieList" />
+                        <img src="logo.png" alt="MovieList" />
                     </h1>
                     <div class="search-container">
                     <input
@@ -290,7 +290,7 @@ function initFooter() {
   footer.innerHTML = /*html*/
   `
         <p>&copy; 우아한테크코스 All Rights Reserved.</p>
-        <p><img src="./images/woowacourse_logo.png" width="180" /></p>
+        <p><img src="woowacourse_logo.png" width="180" /></p>
     `;
 }
 class Main {
