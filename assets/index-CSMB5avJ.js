@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _id, _posterPath, _title, _voteAverage, _backdropPath, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _includeAdult, _includeVideo, _page2, _sortBy, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn;
+var _id, _posterPath, _title, _voteAverage, _backdropPath, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _apiUrl, _includeAdult, _page2, _includeVideo, _sortBy, _keyword, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn, clickSearchButton_fn, searchMovie_fn, nextPage_fn;
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -89,6 +89,7 @@ formatToTwoDecimals_fn = function(voteAverage) {
 __publicField(_MovieModel, "POSTER_URL", "https://image.tmdb.org/t/p/w440_and_h660_face");
 __publicField(_MovieModel, "BACKDROP_IMAGE_URL", "https://media.themoviedb.org/t/p/w1920_and_h1080_face");
 let MovieModel = _MovieModel;
+const FIRST_INDEX = 0;
 class MovieListModel {
   constructor(response) {
     __privateAdd(this, _totalPages);
@@ -96,7 +97,7 @@ class MovieListModel {
     __privateAdd(this, _page);
     __privateAdd(this, _movieModels);
     __privateSet(this, _page, response.page);
-    __privateSet(this, _totalPages, response.total_results);
+    __privateSet(this, _totalResults, response.total_results);
     __privateSet(this, _totalPages, response.total_pages);
     __privateSet(this, _movieModels, []);
     __privateSet(this, _movieModels, response.results.map(
@@ -113,20 +114,22 @@ class MovieListModel {
     return __privateGet(this, _page);
   }
   get firstMovie() {
-    return __privateGet(this, _movieModels)[0];
+    return __privateGet(this, _movieModels)[FIRST_INDEX];
   }
   isLastPage() {
-    return __privateGet(this, _totalResults) === __privateGet(this, _page);
+    return __privateGet(this, _totalPages) === __privateGet(this, _page);
   }
 }
 _totalPages = new WeakMap();
 _totalResults = new WeakMap();
 _page = new WeakMap();
 _movieModels = new WeakMap();
-const movieApiUrl = "https://api.themoviedb.org/3/discover/movie";
+const getMoviePopularApiUrl = "https://api.themoviedb.org/3/discover/movie";
+const getMovieSearchKeyowrdApiUrl = "https://api.themoviedb.org/3/search/movie";
 const movieApiKey = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNjE4ODViMmQwZmI1Njk0ZTg3NGM3OGQ1MzdlODUxNiIsIm5iZiI6MTc0MTU4MjI1NS42NDQsInN1YiI6IjY3Y2U2ZmFmZmYxYTg0MGI5OTExMGYxOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Fu87SnyDcUukl3Bb0gHSBiJ43DQ_OuyjpRK28jqs_iU";
 async function getMovie(movieApiQuery) {
-  const apiUrl = `${movieApiUrl}?${movieApiQuery.toQueryString()}`;
+  const apiUrl = `${movieApiQuery.apiUrl}?${movieApiQuery.toQueryString()}`;
+  console.log(apiUrl);
   try {
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -156,6 +159,9 @@ function initMovieRender(movieListInstance, title) {
   movieListRender(movieUl, movieListInstance);
   fragment.appendChild(movieUl);
   movieSection.appendChild(fragment);
+  if (!movieListInstance.isLastPage()) {
+    movieSection.appendChild(createMoreButton());
+  }
 }
 function addMovieRender(movieListInstance) {
   const movieUl = document.querySelector(".thumbnail-list");
@@ -200,27 +206,64 @@ function createMovie(movieInstance) {
     `;
   return item;
 }
+function createMoreButton() {
+  const div = document.createElement("div");
+  div.innerHTML = /*html*/
+  `
+    <button class="more-btn">더보기</button>
+  `;
+  return div;
+}
 class MovieApiQuery {
   constructor(request) {
+    __privateAdd(this, _apiUrl);
     __privateAdd(this, _includeAdult);
-    __privateAdd(this, _includeVideo);
     __privateAdd(this, _page2);
-    __privateAdd(this, _sortBy);
+    console.log(request);
+    __privateSet(this, _apiUrl, this.getApiUrl());
     __privateSet(this, _includeAdult, request.includeAdult);
-    __privateSet(this, _includeVideo, request.includeVideo);
     __privateSet(this, _page2, request.page);
-    __privateSet(this, _sortBy, request.sortBy);
+  }
+  get apiUrl() {
+    return __privateGet(this, _apiUrl);
+  }
+  get page() {
+    return __privateGet(this, _page2);
+  }
+  get includeAdult() {
+    return __privateGet(this, _includeAdult);
+  }
+  updatePage(page) {
+    __privateSet(this, _page2, page);
   }
   toQueryString() {
-    return `include_adult=${__privateGet(this, _includeAdult)}&include_video=${__privateGet(this, _includeVideo)}&language=ko-KR&page=${__privateGet(this, _page2)}&sort_by=${__privateGet(this, _sortBy)}`;
+    throw new Error(
+      "toQueryString() 메소드는 자식 클래스에서 구현되어야 합니다."
+    );
   }
-  nextPage() {
-    __privateSet(this, _page2, __privateGet(this, _page2) + 1);
+  getApiUrl() {
+    throw new Error("getApiUrl() 메소드는 자식 클래스에서 구현되어야 합니다.");
   }
 }
+_apiUrl = new WeakMap();
 _includeAdult = new WeakMap();
-_includeVideo = new WeakMap();
 _page2 = new WeakMap();
+class MoviePopularApiQuery extends MovieApiQuery {
+  constructor(request) {
+    super(request);
+    __privateAdd(this, _includeVideo);
+    __privateAdd(this, _sortBy);
+    __privateSet(this, _includeVideo, request.includeVideo);
+    __privateSet(this, _sortBy, request.sortBy);
+  }
+  getApiUrl() {
+    return getMoviePopularApiUrl;
+  }
+  toQueryString() {
+    return `include_adult=${this.includeAdult}&include_video=${__privateGet(this, _includeVideo)}&language=ko-KR&page=${this.page}&sort_by=${__privateGet(this, _sortBy)}`;
+  }
+}
+_includeVideo = new WeakMap();
 _sortBy = new WeakMap();
 function initHeader(movieInstance) {
   const header = document.querySelector("header");
@@ -293,6 +336,21 @@ function initFooter() {
         <p><img src="woowacourse_logo.png" width="180" /></p>
     `;
 }
+class MovieSearchApiQuery extends MovieApiQuery {
+  constructor(request) {
+    super(request);
+    __privateAdd(this, _keyword);
+    __privateSet(this, _keyword, request.keyword);
+  }
+  getApiUrl() {
+    return getMovieSearchKeyowrdApiUrl;
+  }
+  toQueryString() {
+    return `query=${__privateGet(this, _keyword)}&includeAdult=${this.includeAdult}&page=${this.page}&language=ko-KR`;
+  }
+}
+_keyword = new WeakMap();
+const NEXTPAGE_NUM = 1;
 class Main {
   constructor() {
     __privateAdd(this, _Main_instances);
@@ -301,8 +359,7 @@ class Main {
   }
   async init() {
     addEventListener("load", async () => {
-      __privateMethod(this, _Main_instances, enrollClickEvent_fn).call(this);
-      __privateSet(this, _movieApiQuery, new MovieApiQuery({
+      __privateSet(this, _movieApiQuery, new MoviePopularApiQuery({
         includeAdult: false,
         includeVideo: false,
         page: 1,
@@ -314,6 +371,7 @@ class Main {
       initTab();
       initMovieRender(movieListInstance, "지금 인기있는 영화 ");
       initFooter();
+      __privateMethod(this, _Main_instances, enrollClickEvent_fn).call(this);
     });
   }
 }
@@ -322,10 +380,12 @@ _movieApiQuery = new WeakMap();
 _Main_instances = new WeakSet();
 enrollClickEvent_fn = function() {
   __privateMethod(this, _Main_instances, clickMoreButton_fn).call(this);
+  __privateMethod(this, _Main_instances, clickSearchButton_fn).call(this);
 };
 clickMoreButton_fn = function() {
   document.querySelector(".more-btn").addEventListener("click", async () => {
-    __privateGet(this, _movieApiQuery).nextPage();
+    __privateMethod(this, _Main_instances, nextPage_fn).call(this);
+    __privateGet(this, _movieApiQuery).updatePage(__privateGet(this, _page3));
     const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
     __privateSet(this, _page3, movieListInstance.page);
     addMovieRender(movieListInstance);
@@ -333,6 +393,30 @@ clickMoreButton_fn = function() {
       document.querySelector(".more-btn").classList.add("none");
     }
   });
+};
+clickSearchButton_fn = function() {
+  const searchInput = document.querySelector(".search-input");
+  document.querySelector(".search-icon").addEventListener("click", async () => {
+    await __privateMethod(this, _Main_instances, searchMovie_fn).call(this, searchInput.value);
+  });
+  searchInput.addEventListener("keydown", async (event) => {
+    if (event.key === "Enter") {
+      await __privateMethod(this, _Main_instances, searchMovie_fn).call(this, searchInput.value);
+    }
+  });
+};
+searchMovie_fn = async function(inputValue) {
+  __privateMethod(this, _Main_instances, nextPage_fn).call(this);
+  __privateSet(this, _movieApiQuery, new MovieSearchApiQuery({
+    includeAdult: false,
+    keyword: inputValue,
+    page: 1
+  }));
+  const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
+  initMovieRender(movieListInstance, inputValue + " 검색결과");
+};
+nextPage_fn = function() {
+  __privateSet(this, _page3, __privateGet(this, _page3) + NEXTPAGE_NUM);
 };
 const main = new Main();
 main.init();
