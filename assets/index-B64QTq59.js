@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _id, _posterPath, _title, _voteAverage, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _includeAdult, _includeVideo, _page2, _sortBy, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn;
+var _id, _posterPath, _title, _voteAverage, _backdropPath, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _includeAdult, _includeVideo, _page2, _sortBy, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn;
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -54,10 +54,12 @@ const _MovieModel = class _MovieModel {
     __privateAdd(this, _posterPath);
     __privateAdd(this, _title);
     __privateAdd(this, _voteAverage);
+    __privateAdd(this, _backdropPath);
     __privateSet(this, _id, result.id);
-    __privateSet(this, _posterPath, _MovieModel.IMAGE_URL + result.poster_path);
+    __privateSet(this, _posterPath, _MovieModel.POSTER_URL + result.poster_path);
     __privateSet(this, _title, result.title);
     __privateSet(this, _voteAverage, __privateMethod(this, _MovieModel_instances, formatToTwoDecimals_fn).call(this, result.vote_average));
+    __privateSet(this, _backdropPath, _MovieModel.BACKDROP_IMAGE_URL + result.backdrop_path);
   }
   get id() {
     return __privateGet(this, _id);
@@ -71,16 +73,21 @@ const _MovieModel = class _MovieModel {
   get voteAverage() {
     return __privateGet(this, _voteAverage);
   }
+  get backdropPath() {
+    return __privateGet(this, _backdropPath);
+  }
 };
 _id = new WeakMap();
 _posterPath = new WeakMap();
 _title = new WeakMap();
 _voteAverage = new WeakMap();
+_backdropPath = new WeakMap();
 _MovieModel_instances = new WeakSet();
 formatToTwoDecimals_fn = function(voteAverage) {
   return Number(voteAverage).toFixed(1);
 };
-__publicField(_MovieModel, "IMAGE_URL", "https://image.tmdb.org/t/p/w440_and_h660_face");
+__publicField(_MovieModel, "POSTER_URL", "https://image.tmdb.org/t/p/w440_and_h660_face");
+__publicField(_MovieModel, "BACKDROP_IMAGE_URL", "https://media.themoviedb.org/t/p/w1920_and_h1080_face");
 let MovieModel = _MovieModel;
 class MovieListModel {
   constructor(response) {
@@ -104,6 +111,9 @@ class MovieListModel {
   }
   get page() {
     return __privateGet(this, _page);
+  }
+  get firstMovie() {
+    return __privateGet(this, _movieModels)[0];
   }
   isLastPage() {
     return __privateGet(this, _totalResults) === __privateGet(this, _page);
@@ -202,7 +212,7 @@ class MovieApiQuery {
     __privateSet(this, _sortBy, request.sortBy);
   }
   toQueryString() {
-    return `include_adult=${__privateGet(this, _includeAdult)}&include_video=${__privateGet(this, _includeVideo)}&page=${__privateGet(this, _page2)}&sort_by=${__privateGet(this, _sortBy)}`;
+    return `include_adult=${__privateGet(this, _includeAdult)}&include_video=${__privateGet(this, _includeVideo)}&language=ko-KR&page=${__privateGet(this, _page2)}&sort_by=${__privateGet(this, _sortBy)}`;
   }
   nextPage() {
     __privateSet(this, _page2, __privateGet(this, _page2) + 1);
@@ -212,39 +222,40 @@ _includeAdult = new WeakMap();
 _includeVideo = new WeakMap();
 _page2 = new WeakMap();
 _sortBy = new WeakMap();
-function initHeader() {
+function initHeader(movieInstance) {
   const header = document.querySelector("header");
+  const starImagePath = movieInstance.voteAverage === "0.0" ? starImage["empty"] : starImage["filled"];
   header.innerHTML = /*html*/
   `
-        <div class="background-container">
-          <div class="overlay" aria-hidden="true"></div>
-          <div class="top-rated-container">
-            <div class="top-bar">
-              <h1 class="logo">
-                <img src="./images/logo.png" alt="MovieList" />
-              </h1>
-              <div class="search-container">
-                <input
-                  class="search-input"
-                  type="search"
-                  placeholder="검색어를 입력하세요."
-                />
-                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 50 50">
-                  <path d="M 21 3 C 11.622998 3 4 10.623005 4 20 C 4 29.376995 11.622998 37 21 37 C 24.712383 37 28.139151 35.791079 30.9375 33.765625 L 44.085938 46.914062 L 46.914062 44.085938 L 33.886719 31.058594 C 36.443536 28.083 38 24.223631 38 20 C 38 10.623005 30.377002 3 21 3 z M 21 5 C 29.296122 5 36 11.703883 36 20 C 36 28.296117 29.296122 35 21 35 C 12.703878 35 6 28.296117 6 20 C 6 11.703883 12.703878 5 21 5 z"></path>
-                  </svg>
+    <div class="background-container" style="background-image: url('${movieInstance.backdropPath}'); background-size: cover; background-position: center;">
+        <div class="overlay" aria-hidden="true"></div>
+            <div class="top-rated-container">
+                <div class="top-bar">
+                    <h1 class="logo">
+                        <img src="./images/logo.png" alt="MovieList" />
+                    </h1>
+                    <div class="search-container">
+                    <input
+                        class="search-input"
+                        type="search"
+                        placeholder="검색어를 입력하세요."
+                    />
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 50 50">
+                        <path d="M 21 3 C 11.622998 3 4 10.623005 4 20 C 4 29.376995 11.622998 37 21 37 C 24.712383 37 28.139151 35.791079 30.9375 33.765625 L 44.085938 46.914062 L 46.914062 44.085938 L 33.886719 31.058594 C 36.443536 28.083 38 24.223631 38 20 C 38 10.623005 30.377002 3 21 3 z M 21 5 C 29.296122 5 36 11.703883 36 20 C 36 28.296117 29.296122 35 21 35 C 12.703878 35 6 28.296117 6 20 C 6 11.703883 12.703878 5 21 5 z"></path>
+                    </svg>
+                    </div>
+                </div>
+                
+                <div class="top-rated-movie">
+                <div class="rate">
+                    <img src="${starImagePath}" class="star" />
+                    <span class="rate-value">${movieInstance.voteAverage}</span>
+                </div>
+                <div class="title">${movieInstance.title}</div>
+                <button class="primary detail">자세히 보기</button>
             </div>
-              </div>
-            </div>
-            <div class="top-rated-movie">
-              <div class="rate">
-                <img src="./images/star_empty.png" class="star" />
-                <span class="rate-value">9.5</span>
-              </div>
-              <div class="title">인사이드 아웃2</div>
-              <button class="primary detail">자세히 보기</button>
-            </div>
-          </div>
-        </div>
+        </div>s
+    </div>
   `;
 }
 function initTab() {
@@ -299,7 +310,7 @@ class Main {
       }));
       const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
       __privateSet(this, _page3, movieListInstance.page);
-      initHeader();
+      initHeader(movieListInstance.firstMovie);
       initTab();
       initMovieRender(movieListInstance, "지금 인기있는 영화 ");
       initFooter();
