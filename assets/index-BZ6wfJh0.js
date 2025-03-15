@@ -415,6 +415,7 @@ searchMovie_fn = async function(inputValue) {
   }));
   const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
   initMovieRender(movieListInstance, inputValue + " 검색결과");
+  __privateMethod(this, _Main_instances, enrollClickEvent_fn).call(this);
 };
 nextPage_fn = function() {
   __privateSet(this, _page3, __privateGet(this, _page3) + NEXTPAGE_NUM);
