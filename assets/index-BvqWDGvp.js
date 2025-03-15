@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _id, _posterPath, _title, _voteAverage, _backdropPath, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _apiUrl, _includeAdult, _page2, _includeVideo, _sortBy, _keyword, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn, clickSearchButton_fn, searchMovie_fn, nextPage_fn;
+var _id, _posterPath, _title, _voteAverage, _backdropPath, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _apiUrl, _includeAdult, _page2, _includeVideo, _sortBy, _keyword, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn, clickSearchButton_fn, searchMovie_fn, nextPage_fn, initPage_fn;
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -351,6 +351,7 @@ class MovieSearchApiQuery extends MovieApiQuery {
 }
 _keyword = new WeakMap();
 const NEXTPAGE_NUM = 1;
+const FIRST_PAGE = 1;
 class Main {
   constructor() {
     __privateAdd(this, _Main_instances);
@@ -359,10 +360,11 @@ class Main {
   }
   async init() {
     addEventListener("load", async () => {
+      __privateMethod(this, _Main_instances, initPage_fn).call(this);
       __privateSet(this, _movieApiQuery, new MoviePopularApiQuery({
         includeAdult: false,
         includeVideo: false,
-        page: 1,
+        page: __privateGet(this, _page3),
         sortBy: "popularity.desc"
       }));
       const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
@@ -395,6 +397,7 @@ clickMoreButton_fn = function() {
   });
 };
 clickSearchButton_fn = function() {
+  __privateMethod(this, _Main_instances, initPage_fn).call(this);
   const searchInput = document.querySelector(".search-input");
   document.querySelector(".search-icon").addEventListener("click", async () => {
     await __privateMethod(this, _Main_instances, searchMovie_fn).call(this, searchInput.value);
@@ -410,13 +413,16 @@ searchMovie_fn = async function(inputValue) {
   __privateSet(this, _movieApiQuery, new MovieSearchApiQuery({
     includeAdult: false,
     keyword: inputValue,
-    page: 1
+    page: __privateGet(this, _page3)
   }));
   const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
   initMovieRender(movieListInstance, inputValue + " 검색결과");
 };
 nextPage_fn = function() {
   __privateSet(this, _page3, __privateGet(this, _page3) + NEXTPAGE_NUM);
+};
+initPage_fn = function() {
+  __privateSet(this, _page3, FIRST_PAGE);
 };
 const main = new Main();
 main.init();
