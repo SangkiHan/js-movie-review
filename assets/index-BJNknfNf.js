@@ -88,14 +88,13 @@ class MovieListModel {
     __privateAdd(this, _totalResults);
     __privateAdd(this, _page);
     __privateAdd(this, _movieModels);
-    console.log(response);
     __privateSet(this, _page, response.page);
     __privateSet(this, _totalPages, response.total_results);
     __privateSet(this, _totalPages, response.total_pages);
     __privateSet(this, _movieModels, []);
-    response.results.forEach((result) => {
-      __privateGet(this, _movieModels).push(new MovieModel(result));
-    });
+    __privateSet(this, _movieModels, response.results.map(
+      (result) => new MovieModel(result)
+    ));
   }
   get totalResults() {
     return __privateGet(this, _totalResults);
@@ -114,14 +113,15 @@ _totalPages = new WeakMap();
 _totalResults = new WeakMap();
 _page = new WeakMap();
 _movieModels = new WeakMap();
-const BASE_URL = "https://api.themoviedb.org/3/discover/movie";
-async function movieApiCall(movieApiQuery) {
-  const apiUrl = `${BASE_URL}?${movieApiQuery.toQueryString()}`;
+const movieApiUrl = "https://api.themoviedb.org/3/discover/movie";
+const movieApiKey = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNjE4ODViMmQwZmI1Njk0ZTg3NGM3OGQ1MzdlODUxNiIsIm5iZiI6MTc0MTU4MjI1NS42NDQsInN1YiI6IjY3Y2U2ZmFmZmYxYTg0MGI5OTExMGYxOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Fu87SnyDcUukl3Bb0gHSBiJ43DQ_OuyjpRK28jqs_iU";
+async function getMovie(movieApiQuery) {
+  const apiUrl = `${movieApiUrl}?${movieApiQuery.toQueryString()}`;
   try {
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNjE4ODViMmQwZmI1Njk0ZTg3NGM3OGQ1MzdlODUxNiIsIm5iZiI6MTc0MTU4MjI1NS42NDQsInN1YiI6IjY3Y2U2ZmFmZmYxYTg0MGI5OTExMGYxOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Fu87SnyDcUukl3Bb0gHSBiJ43DQ_OuyjpRK28jqs_iU"}`
+        Authorization: "Bearer " + movieApiKey
       }
     });
     if (!response.ok) {
@@ -191,15 +191,15 @@ function createMovie(movieInstance) {
   return item;
 }
 class MovieApiQuery {
-  constructor(includeAdult, includeVideo, page, sortBy) {
+  constructor(request) {
     __privateAdd(this, _includeAdult);
     __privateAdd(this, _includeVideo);
     __privateAdd(this, _page2);
     __privateAdd(this, _sortBy);
-    __privateSet(this, _includeAdult, includeAdult);
-    __privateSet(this, _includeVideo, includeVideo);
-    __privateSet(this, _page2, page);
-    __privateSet(this, _sortBy, sortBy);
+    __privateSet(this, _includeAdult, request.includeAdult);
+    __privateSet(this, _includeVideo, request.includeVideo);
+    __privateSet(this, _page2, request.page);
+    __privateSet(this, _sortBy, request.sortBy);
   }
   toQueryString() {
     return `include_adult=${__privateGet(this, _includeAdult)}&include_video=${__privateGet(this, _includeVideo)}&page=${__privateGet(this, _page2)}&sort_by=${__privateGet(this, _sortBy)}`;
@@ -212,6 +212,76 @@ _includeAdult = new WeakMap();
 _includeVideo = new WeakMap();
 _page2 = new WeakMap();
 _sortBy = new WeakMap();
+function initHeader() {
+  const header = document.querySelector("header");
+  header.innerHTML = /*html*/
+  `
+        <div class="background-container">
+          <div class="overlay" aria-hidden="true"></div>
+          <div class="top-rated-container">
+            <div class="top-bar">
+              <h1 class="logo">
+                <img src="./images/logo.png" alt="MovieList" />
+              </h1>
+              <div class="search-container">
+                <input
+                  class="search-input"
+                  type="search"
+                  placeholder="검색어를 입력하세요."
+                />
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 50 50">
+                  <path d="M 21 3 C 11.622998 3 4 10.623005 4 20 C 4 29.376995 11.622998 37 21 37 C 24.712383 37 28.139151 35.791079 30.9375 33.765625 L 44.085938 46.914062 L 46.914062 44.085938 L 33.886719 31.058594 C 36.443536 28.083 38 24.223631 38 20 C 38 10.623005 30.377002 3 21 3 z M 21 5 C 29.296122 5 36 11.703883 36 20 C 36 28.296117 29.296122 35 21 35 C 12.703878 35 6 28.296117 6 20 C 6 11.703883 12.703878 5 21 5 z"></path>
+                  </svg>
+            </div>
+              </div>
+            </div>
+            <div class="top-rated-movie">
+              <div class="rate">
+                <img src="./images/star_empty.png" class="star" />
+                <span class="rate-value">9.5</span>
+              </div>
+              <div class="title">인사이드 아웃2</div>
+              <button class="primary detail">자세히 보기</button>
+            </div>
+          </div>
+        </div>
+  `;
+}
+function initTab() {
+  document.querySelector(".container");
+  const tab = document.querySelector(".tab");
+  tab.innerHTML = /*html*/
+  `
+        <li>
+            <a href="#">
+            <div class="tab-item selected"><h3>상영 중</h3></div>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+            <div class="tab-item"><h3>인기순</h3></div>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+            <div class="tab-item"><h3>평점순</h3></div>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+            <div class="tab-item"><h3>상영 예정</h3></div>
+            </a>
+        </li>
+    `;
+}
+function initFooter() {
+  const footer = document.querySelector(".footer");
+  footer.innerHTML = /*html*/
+  `
+        <p>&copy; 우아한테크코스 All Rights Reserved.</p>
+        <p><img src="./images/woowacourse_logo.png" width="180" /></p>
+    `;
+}
 class Main {
   constructor() {
     __privateAdd(this, _Main_instances);
@@ -221,15 +291,18 @@ class Main {
   async init() {
     addEventListener("load", async () => {
       __privateMethod(this, _Main_instances, enrollClickEvent_fn).call(this);
-      __privateSet(this, _movieApiQuery, new MovieApiQuery(
-        false,
-        false,
-        1,
-        "popularity.desc"
-      ));
-      const movieListInstance = await movieApiCall(__privateGet(this, _movieApiQuery));
+      __privateSet(this, _movieApiQuery, new MovieApiQuery({
+        includeAdult: false,
+        includeVideo: false,
+        page: 1,
+        sortBy: "popularity.desc"
+      }));
+      const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
       __privateSet(this, _page3, movieListInstance.page);
+      initHeader();
+      initTab();
       initMovieRender(movieListInstance, "지금 인기있는 영화 ");
+      initFooter();
     });
   }
 }
@@ -242,7 +315,7 @@ enrollClickEvent_fn = function() {
 clickMoreButton_fn = function() {
   document.querySelector(".more-btn").addEventListener("click", async () => {
     __privateGet(this, _movieApiQuery).nextPage();
-    const movieListInstance = await movieApiCall(__privateGet(this, _movieApiQuery));
+    const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
     __privateSet(this, _page3, movieListInstance.page);
     addMovieRender(movieListInstance);
     if (movieListInstance.isLastPage()) {
