@@ -396,7 +396,7 @@ clickMoreButton_fn = function() {
 };
 clickSearchButton_fn = function() {
   const searchInput = document.querySelector(".search-input");
-  searchInput.addEventListener("click", async () => {
+  document.querySelector(".search-icon").addEventListener("click", async () => {
     __privateMethod(this, _Main_instances, initPage_fn).call(this);
     await __privateMethod(this, _Main_instances, searchMovie_fn).call(this, searchInput.value);
   });
