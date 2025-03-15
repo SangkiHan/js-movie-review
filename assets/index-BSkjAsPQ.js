@@ -129,7 +129,6 @@ const getMovieSearchKeyowrdApiUrl = "https://api.themoviedb.org/3/search/movie";
 const movieApiKey = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNjE4ODViMmQwZmI1Njk0ZTg3NGM3OGQ1MzdlODUxNiIsIm5iZiI6MTc0MTU4MjI1NS42NDQsInN1YiI6IjY3Y2U2ZmFmZmYxYTg0MGI5OTExMGYxOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Fu87SnyDcUukl3Bb0gHSBiJ43DQ_OuyjpRK28jqs_iU";
 async function getMovie(movieApiQuery) {
   const apiUrl = `${movieApiQuery.apiUrl}?${movieApiQuery.toQueryString()}`;
-  console.log(apiUrl);
   try {
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -219,7 +218,6 @@ class MovieApiQuery {
     __privateAdd(this, _apiUrl);
     __privateAdd(this, _includeAdult);
     __privateAdd(this, _page2);
-    console.log(request);
     __privateSet(this, _apiUrl, this.getApiUrl());
     __privateSet(this, _includeAdult, request.includeAdult);
     __privateSet(this, _page2, request.page);
@@ -397,19 +395,19 @@ clickMoreButton_fn = function() {
   });
 };
 clickSearchButton_fn = function() {
-  __privateMethod(this, _Main_instances, initPage_fn).call(this);
   const searchInput = document.querySelector(".search-input");
-  document.querySelector(".search-icon").addEventListener("click", async () => {
+  searchInput.addEventListener("click", async () => {
+    __privateMethod(this, _Main_instances, initPage_fn).call(this);
     await __privateMethod(this, _Main_instances, searchMovie_fn).call(this, searchInput.value);
   });
   searchInput.addEventListener("keydown", async (event) => {
     if (event.key === "Enter") {
+      __privateMethod(this, _Main_instances, initPage_fn).call(this);
       await __privateMethod(this, _Main_instances, searchMovie_fn).call(this, searchInput.value);
     }
   });
 };
 searchMovie_fn = async function(inputValue) {
-  __privateMethod(this, _Main_instances, nextPage_fn).call(this);
   __privateSet(this, _movieApiQuery, new MovieSearchApiQuery({
     includeAdult: false,
     keyword: inputValue,
