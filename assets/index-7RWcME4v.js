@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _id, _posterPath, _title, _voteAverage, _backdropPath, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _apiUrl, _includeAdult, _page2, _includeVideo, _sortBy, _keyword, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn, clickSearchButton_fn, searchMovie_fn, nextPage_fn, initPage_fn;
+var _id, _posterPath, _title, _voteAverage, _backdropPath, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _apiUrl, _includeAdult, _page2, _includeVideo, _sortBy, _name, _url, _selected, _tabs, _TabListModel_instances, initData_fn, _keyword, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn, clickSearchButton_fn, searchMovie_fn, nextPage_fn, initPage_fn;
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -124,8 +124,9 @@ _totalPages = new WeakMap();
 _totalResults = new WeakMap();
 _page = new WeakMap();
 _movieModels = new WeakMap();
-const getMoviePopularApiUrl = "https://api.themoviedb.org/3/discover/movie";
-const getMovieSearchKeyowrdApiUrl = "https://api.themoviedb.org/3/search/movie";
+const movieApi = "https://api.themoviedb.org/3";
+const getMoviePopularApiUrl = movieApi + "/discover/movie";
+const getMovieSearchKeyowrdApiUrl = movieApi + "/search/movie";
 const movieApiKey = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNjE4ODViMmQwZmI1Njk0ZTg3NGM3OGQ1MzdlODUxNiIsIm5iZiI6MTc0MTU4MjI1NS42NDQsInN1YiI6IjY3Y2U2ZmFmZmYxYTg0MGI5OTExMGYxOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Fu87SnyDcUukl3Bb0gHSBiJ43DQ_OuyjpRK28jqs_iU";
 async function getMovie(movieApiQuery) {
   const apiUrl = `${movieApiQuery.apiUrl}?${movieApiQuery.toQueryString()}`;
@@ -271,7 +272,7 @@ function initHeader(movieInstance) {
     <div class="background-container" style="background-image: url('${movieInstance.backdropPath}'); background-size: cover; background-position: center;">
         <div class="overlay" aria-hidden="true"></div>
             <div class="top-rated-container">
-                <div class="top-bar">
+                <div class="header-bar">
                     <h1 class="logo">
                         <img src="logo.png" alt="MovieList" />
                     </h1>
@@ -299,32 +300,84 @@ function initHeader(movieInstance) {
     </div>
   `;
 }
-function initTab() {
+class TabModel {
+  constructor(request) {
+    __privateAdd(this, _name);
+    __privateAdd(this, _url);
+    __privateAdd(this, _selected);
+    __privateSet(this, _name, request.name);
+    __privateSet(this, _url, request.url);
+    __privateSet(this, _selected, request.selected);
+  }
+  get name() {
+    return __privateGet(this, _name);
+  }
+  get url() {
+    return __privateGet(this, _url);
+  }
+  get selected() {
+    return __privateGet(this, _selected);
+  }
+}
+_name = new WeakMap();
+_url = new WeakMap();
+_selected = new WeakMap();
+class TabListModel {
+  constructor() {
+    __privateAdd(this, _TabListModel_instances);
+    __privateAdd(this, _tabs);
+    __privateMethod(this, _TabListModel_instances, initData_fn).call(this);
+  }
+  get tabs() {
+    return __privateGet(this, _tabs);
+  }
+}
+_tabs = new WeakMap();
+_TabListModel_instances = new WeakSet();
+initData_fn = function() {
+  __privateSet(this, _tabs, [
+    new TabModel({
+      url: "#",
+      name: "상영중",
+      selected: true
+    }),
+    new TabModel({
+      url: "#",
+      name: "인기순",
+      selected: false
+    }),
+    new TabModel({
+      url: "#",
+      name: "평점순",
+      selected: false
+    }),
+    new TabModel({
+      url: "#",
+      name: "상영예정",
+      selected: false
+    })
+  ]);
+};
+function initTab(tabModel) {
+  const selectedClass = tabModel.selected ? "selected" : "";
+  return (
+    /*html*/
+    `
+          <li>
+              <a href="${tabModel.url}">
+              <div class="tab-item ${selectedClass}"><h3>${tabModel.name}</h3></div>
+              </a>
+          </li>
+      `
+  );
+}
+function initNav() {
   document.querySelector(".container");
   const tab = document.querySelector(".tab");
-  tab.innerHTML = /*html*/
-  `
-        <li>
-            <a href="#">
-            <div class="tab-item selected"><h3>상영 중</h3></div>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-            <div class="tab-item"><h3>인기순</h3></div>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-            <div class="tab-item"><h3>평점순</h3></div>
-            </a>
-        </li>
-        <li>
-            <a href="#">
-            <div class="tab-item"><h3>상영 예정</h3></div>
-            </a>
-        </li>
-    `;
+  const tabListModel = new TabListModel();
+  tabListModel.tabs.forEach((tabModel) => {
+    tab.innerHTML += initTab(tabModel);
+  });
 }
 function initFooter() {
   const footer = document.querySelector(".footer");
@@ -368,7 +421,7 @@ class Main {
       const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
       __privateSet(this, _page3, movieListInstance.page);
       initHeader(movieListInstance.firstMovie);
-      initTab();
+      initNav();
       initMovieRender(movieListInstance, "지금 인기있는 영화 ");
       initFooter();
       __privateMethod(this, _Main_instances, enrollClickEvent_fn).call(this);

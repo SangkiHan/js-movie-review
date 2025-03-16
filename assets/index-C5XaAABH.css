@@ -289,7 +289,7 @@ footer.footer p:not(:last-child) {
   display: none;
 }
 
-.top-bar {
+.header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
