@@ -2,7 +2,7 @@ import { getMovie } from "./api/MovieApiCall.js";
 import { initMovieRender, addMovieRender } from "./component/Movie.js";
 import MoviePopularApiQuery from "./api/MoviePopularApiQuery.js";
 import { initHeader } from "./component/Header.js";
-import { initTab } from "./component/Nav.js";
+import { initNav } from "./component/Nav.js";
 import { initFooter } from "./component/Footer.js";
 import MovieSearchApiQuery from "./api/MovieSearchApiQuery.js";
 
@@ -25,7 +25,7 @@ class Main {
       const movieListInstance = await getMovie(this.#movieApiQuery);
       this.#page = movieListInstance.page;
       initHeader(movieListInstance.firstMovie);
-      initTab();
+      initNav();
       initMovieRender(movieListInstance, "지금 인기있는 영화 ");
       initFooter();
 

@@ -12,7 +12,7 @@ export function initHeader(movieInstance) {
     <div class="background-container" style="background-image: url('${movieInstance.backdropPath}'); background-size: cover; background-position: center;">
         <div class="overlay" aria-hidden="true"></div>
             <div class="top-rated-container">
-                <div class="top-bar">
+                <div class="header-bar">
                     <h1 class="logo">
                         <img src="logo.png" alt="MovieList" />
                     </h1>
