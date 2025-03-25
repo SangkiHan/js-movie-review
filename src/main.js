@@ -5,14 +5,17 @@ import { initHeader } from "./component/Header.js";
 import { initNav } from "./component/Nav.js";
 import { initFooter } from "./component/Footer.js";
 import MovieSearchApiQuery from "./api/MovieSearchApiQuery.js";
+import { openModal } from "./component/Modal.js";
 
 const NEXTPAGE_NUM = 1;
 const FIRST_PAGE = 1;
 class Main {
   #page;
   #movieApiQuery;
+  #movieList;
 
   async init() {
+    this.#movieList = [];
     addEventListener("load", async () => {
       this.#initPage();
       this.#movieApiQuery = new MoviePopularApiQuery({
@@ -23,6 +26,7 @@ class Main {
       });
 
       const movieListInstance = await getMovie(this.#movieApiQuery);
+      this.#movieList = movieListInstance.movieModels;
       this.#page = movieListInstance.page;
       initHeader(movieListInstance.firstMovie);
       initNav();
@@ -34,23 +38,37 @@ class Main {
   }
 
   #enrollClickEvent() {
-    this.#clickMoreButton();
+    this.#scrollEvent();
     this.#clickSearchButton();
+    this.#movieInfolick();
   }
 
-  #clickMoreButton() {
-    document.querySelector(".more-btn").addEventListener("click", async () => {
-      this.#nextPage();
-      this.#movieApiQuery.updatePage(this.#page);
+  #scrollEvent() {
+    window.addEventListener("scroll", this.#handleScroll.bind(this));
+  }
 
-      const movieListInstance = await getMovie(this.#movieApiQuery);
-      this.#page = movieListInstance.page;
-      addMovieRender(movieListInstance);
+  #handleScroll() {
+    if (
+      window.innerHeight + window.scrollY >=
+      document.documentElement.scrollHeight
+    ) {
+      this.#getMovieNextPage();
+    }
+  }
 
-      if (movieListInstance.isLastPage()) {
-        document.querySelector(".more-btn").classList.add("none");
-      }
-    });
+  async #getMovieNextPage() {
+    this.#nextPage();
+    this.#movieApiQuery.updatePage(this.#page);
+
+    const movieListInstance = await getMovie(this.#movieApiQuery);
+    this.#movieList.push(...movieListInstance.movieModels);
+    this.#page = movieListInstance.page;
+    addMovieRender(movieListInstance);
+    this.#movieInfolick();
+
+    if (movieListInstance.isLastPage()) {
+      window.removeEventListener("scroll", this.#handleScroll.bind(this));
+    }
   }
 
   #clickSearchButton() {
@@ -68,6 +86,18 @@ class Main {
         this.#initPage();
         await this.#searchMovie(searchInput.value);
       }
+    });
+  }
+
+  #movieInfolick() {
+    const movieInfo = document.querySelectorAll(".item");
+
+    movieInfo.forEach((info) => {
+      info.addEventListener("click", () => {
+        const movieItem = info.closest(".movie");
+        const id = movieItem.querySelector("#id").value;
+        openModal(this.#getMovieById(id));
+      });
     });
   }
 
@@ -89,6 +119,12 @@ class Main {
 
   #initPage() {
     this.#page = FIRST_PAGE;
+  }
+
+  #getMovieById(id) {
+    return this.#movieList.find((movie) => {
+      return movie.id === parseInt(id);
+    });
   }
 }
 
