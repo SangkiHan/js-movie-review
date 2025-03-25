@@ -8,6 +8,8 @@ class MovieModel {
   #title;
   #voteAverage;
   #backdropPath;
+  #myVote;
+  #overView;
 
   constructor(result) {
     this.#id = result.id;
@@ -15,6 +17,8 @@ class MovieModel {
     this.#title = result.title;
     this.#voteAverage = this.#formatToTwoDecimals(result.vote_average);
     this.#backdropPath = MovieModel.BACKDROP_IMAGE_URL + result.backdrop_path;
+    this.#overView = result.overview;
+    this.#myVote = 0;
   }
 
   get id() {
@@ -35,6 +39,18 @@ class MovieModel {
 
   get backdropPath() {
     return this.#backdropPath;
+  }
+
+  get overView() {
+    return this.#overView;
+  }
+
+  get myVote() {
+    return this.#myVote;
+  }
+
+  updateMyVote(myVote) {
+    this.#myVote = myVote;
   }
 
   #formatToTwoDecimals(voteAverage) {
