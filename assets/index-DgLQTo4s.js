@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
-var _id, _posterPath, _title, _voteAverage, _backdropPath, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _apiUrl, _includeAdult, _page2, _includeVideo, _sortBy, _name, _url, _selected, _tabs, _TabListModel_instances, initData_fn, _keyword, _page3, _movieApiQuery, _Main_instances, enrollClickEvent_fn, clickMoreButton_fn, clickSearchButton_fn, searchMovie_fn, nextPage_fn, initPage_fn;
+var _id, _posterPath, _title, _voteAverage, _backdropPath, _myVote, _overView, _MovieModel_instances, formatToTwoDecimals_fn, _totalPages, _totalResults, _page, _movieModels, _apiUrl, _includeAdult, _page2, _includeVideo, _sortBy, _name, _url, _selected, _tabs, _TabListModel_instances, initData_fn, _keyword, _page3, _movieApiQuery, _movieList, _Main_instances, enrollClickEvent_fn, scrollEvent_fn, handleScroll_fn, getMovieNextPage_fn, clickSearchButton_fn, movieInfolick_fn, searchMovie_fn, nextPage_fn, initPage_fn, getMovieById_fn;
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -55,11 +55,15 @@ const _MovieModel = class _MovieModel {
     __privateAdd(this, _title);
     __privateAdd(this, _voteAverage);
     __privateAdd(this, _backdropPath);
+    __privateAdd(this, _myVote);
+    __privateAdd(this, _overView);
     __privateSet(this, _id, result.id);
     __privateSet(this, _posterPath, _MovieModel.POSTER_URL + result.poster_path);
     __privateSet(this, _title, result.title);
     __privateSet(this, _voteAverage, __privateMethod(this, _MovieModel_instances, formatToTwoDecimals_fn).call(this, result.vote_average));
     __privateSet(this, _backdropPath, _MovieModel.BACKDROP_IMAGE_URL + result.backdrop_path);
+    __privateSet(this, _overView, result.overview);
+    __privateSet(this, _myVote, 0);
   }
   get id() {
     return __privateGet(this, _id);
@@ -76,12 +80,23 @@ const _MovieModel = class _MovieModel {
   get backdropPath() {
     return __privateGet(this, _backdropPath);
   }
+  get overView() {
+    return __privateGet(this, _overView);
+  }
+  get myVote() {
+    return __privateGet(this, _myVote);
+  }
+  updateMyVote(myVote) {
+    __privateSet(this, _myVote, myVote);
+  }
 };
 _id = new WeakMap();
 _posterPath = new WeakMap();
 _title = new WeakMap();
 _voteAverage = new WeakMap();
 _backdropPath = new WeakMap();
+_myVote = new WeakMap();
+_overView = new WeakMap();
 _MovieModel_instances = new WeakSet();
 formatToTwoDecimals_fn = function(voteAverage) {
   return Number(voteAverage).toFixed(1);
@@ -159,9 +174,6 @@ function initMovieRender(movieListInstance, title) {
   movieListRender(movieUl, movieListInstance);
   fragment.appendChild(movieUl);
   movieSection.appendChild(fragment);
-  if (!movieListInstance.isLastPage()) {
-    movieSection.appendChild(createMoreButton());
-  }
 }
 function addMovieRender(movieListInstance) {
   const movieUl = document.querySelector(".thumbnail-list");
@@ -185,9 +197,11 @@ function createTitle(title) {
 }
 function createMovie(movieInstance) {
   const item = document.createElement("li");
+  item.classList.add("movie");
   const starImagePath = movieInstance.voteAverage === "0.0" ? starImage["empty"] : starImage["filled"];
   item.innerHTML = /*html*/
   `
+    <input hidden id="id" value="${movieInstance.id}">
     <div class="item">
         <img
             class="thumbnail"
@@ -205,14 +219,6 @@ function createMovie(movieInstance) {
     </div>
     `;
   return item;
-}
-function createMoreButton() {
-  const div = document.createElement("div");
-  div.innerHTML = /*html*/
-  `
-    <button class="more-btn">더보기</button>
-  `;
-  return div;
 }
 class MovieApiQuery {
   constructor(request) {
@@ -401,6 +407,92 @@ class MovieSearchApiQuery extends MovieApiQuery {
   }
 }
 _keyword = new WeakMap();
+const starMessage = {
+  0: "",
+  1: "최악이예요",
+  2: "별로예요",
+  3: "보통이에요",
+  4: "재미있어요",
+  5: "명작이에요"
+};
+function openModal(movieInstance) {
+  const body = document.body;
+  const div = document.createElement("div");
+  div.classList.add("modal-background");
+  div.classList.add("active");
+  div.id = "modalBackground";
+  const starImagePath = movieInstance.voteAverage === "0.0" ? starImage["empty"] : starImage["filled"];
+  div.innerHTML = /*html*/
+  `
+    <div class="modal">
+        <button class="close-modal" id="closeModal">
+            <img src="./images/modal_button_close.png" />
+        </button>
+        <div class="modal-container">
+            <div class="modal-image">
+            <img
+                class="thumbnail"
+                src=${movieInstance.posterPath}
+                alt=${movieInstance.title}
+            />
+            </div>
+            <div class="modal-description">
+            <h2>${movieInstance.title}</h2>
+            <p class="category">
+            </p>
+            <p class="rate">
+                <img src="${starImagePath}" class="star" /><span
+                    >${movieInstance.voteAverage}</span
+                >
+            </p>
+            <hr />
+            <h3>내 평점</h3>
+            <div class="my-rating">${renderStars(movieInstance.myVote)}</div>
+            <hr />
+            <h3>줄거리</h3>
+            <p class="detail">
+                ${movieInstance.overView}
+            </p>
+            </div>
+        </div>
+    </div>
+    `;
+  body.appendChild(div);
+  clickCloseModal();
+  clickStar(movieInstance);
+}
+function clickCloseModal() {
+  const closeButton = document.querySelector(".close-modal");
+  closeButton.addEventListener("click", () => {
+    closeModal();
+  });
+}
+function closeModal() {
+  const div = document.querySelector(".modal-background");
+  div.remove();
+}
+function renderStars(rate) {
+  return Array.from({ length: 5 }, (_, index) => {
+    return `<img src="${index < rate ? starImage["filled"] : starImage["empty"]}" class="star" 
+    data-index="${index}"/>`;
+  }).join("") + starMessage[rate];
+}
+function clickStar(movieInstance) {
+  const starElements = document.querySelectorAll(".my-rating .star");
+  starElements.forEach((star) => {
+    star.addEventListener("click", (event) => {
+      const clickedIndex = event.target.dataset.index;
+      const newRate = parseInt(clickedIndex) + 1;
+      movieInstance.updateMyVote(newRate);
+      updateRating(newRate, movieInstance);
+    });
+  });
+}
+function updateRating(newRate, movieInstance) {
+  const myRatingContainer = document.querySelector(".my-rating");
+  myRatingContainer.innerHTML = renderStars(newRate);
+  clickStar(movieInstance);
+}
 const NEXTPAGE_NUM = 1;
 const FIRST_PAGE = 1;
 class Main {
@@ -408,8 +500,10 @@ class Main {
     __privateAdd(this, _Main_instances);
     __privateAdd(this, _page3);
     __privateAdd(this, _movieApiQuery);
+    __privateAdd(this, _movieList);
   }
   async init() {
+    __privateSet(this, _movieList, []);
     addEventListener("load", async () => {
       __privateMethod(this, _Main_instances, initPage_fn).call(this);
       __privateSet(this, _movieApiQuery, new MoviePopularApiQuery({
@@ -419,6 +513,7 @@ class Main {
         sortBy: "popularity.desc"
       }));
       const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
+      __privateSet(this, _movieList, movieListInstance.movieModels);
       __privateSet(this, _page3, movieListInstance.page);
       initHeader(movieListInstance.firstMovie);
       initNav();
@@ -430,22 +525,32 @@ class Main {
 }
 _page3 = new WeakMap();
 _movieApiQuery = new WeakMap();
+_movieList = new WeakMap();
 _Main_instances = new WeakSet();
 enrollClickEvent_fn = function() {
-  __privateMethod(this, _Main_instances, clickMoreButton_fn).call(this);
+  __privateMethod(this, _Main_instances, scrollEvent_fn).call(this);
   __privateMethod(this, _Main_instances, clickSearchButton_fn).call(this);
+  __privateMethod(this, _Main_instances, movieInfolick_fn).call(this);
 };
-clickMoreButton_fn = function() {
-  document.querySelector(".more-btn").addEventListener("click", async () => {
-    __privateMethod(this, _Main_instances, nextPage_fn).call(this);
-    __privateGet(this, _movieApiQuery).updatePage(__privateGet(this, _page3));
-    const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
-    __privateSet(this, _page3, movieListInstance.page);
-    addMovieRender(movieListInstance);
-    if (movieListInstance.isLastPage()) {
-      document.querySelector(".more-btn").classList.add("none");
-    }
-  });
+scrollEvent_fn = function() {
+  window.addEventListener("scroll", __privateMethod(this, _Main_instances, handleScroll_fn).bind(this));
+};
+handleScroll_fn = function() {
+  if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight) {
+    __privateMethod(this, _Main_instances, getMovieNextPage_fn).call(this);
+  }
+};
+getMovieNextPage_fn = async function() {
+  __privateMethod(this, _Main_instances, nextPage_fn).call(this);
+  __privateGet(this, _movieApiQuery).updatePage(__privateGet(this, _page3));
+  const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
+  __privateGet(this, _movieList).push(...movieListInstance.movieModels);
+  __privateSet(this, _page3, movieListInstance.page);
+  addMovieRender(movieListInstance);
+  __privateMethod(this, _Main_instances, movieInfolick_fn).call(this);
+  if (movieListInstance.isLastPage()) {
+    window.removeEventListener("scroll", __privateMethod(this, _Main_instances, handleScroll_fn).bind(this));
+  }
 };
 clickSearchButton_fn = function() {
   const searchInput = document.querySelector(".search-input");
@@ -458,6 +563,16 @@ clickSearchButton_fn = function() {
       __privateMethod(this, _Main_instances, initPage_fn).call(this);
       await __privateMethod(this, _Main_instances, searchMovie_fn).call(this, searchInput.value);
     }
+  });
+};
+movieInfolick_fn = function() {
+  const movieInfo = document.querySelectorAll(".item");
+  movieInfo.forEach((info) => {
+    info.addEventListener("click", () => {
+      const movieItem = info.closest(".movie");
+      const id = movieItem.querySelector("#id").value;
+      openModal(__privateMethod(this, _Main_instances, getMovieById_fn).call(this, id));
+    });
   });
 };
 searchMovie_fn = async function(inputValue) {
@@ -475,6 +590,11 @@ nextPage_fn = function() {
 };
 initPage_fn = function() {
   __privateSet(this, _page3, FIRST_PAGE);
+};
+getMovieById_fn = function(id) {
+  return __privateGet(this, _movieList).find((movie) => {
+    return movie.id === parseInt(id);
+  });
 };
 const main = new Main();
 main.init();
