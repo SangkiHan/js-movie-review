@@ -13,9 +13,6 @@ export function initMovieRender(movieListInstance, title) {
 
   fragment.appendChild(movieUl);
   movieSection.appendChild(fragment);
-  if (!movieListInstance.isLastPage()) {
-    movieSection.appendChild(createMoreButton());
-  }
 }
 
 export function addMovieRender(movieListInstance) {
@@ -43,6 +40,7 @@ function createTitle(title) {
 
 function createMovie(movieInstance) {
   const item = document.createElement("li");
+  item.classList.add("movie");
 
   const starImagePath =
     movieInstance.voteAverage === "0.0"
@@ -50,6 +48,7 @@ function createMovie(movieInstance) {
       : starImage["filled"];
 
   item.innerHTML = /*html*/ `
+    <input hidden id="id" value="${movieInstance.id}">
     <div class="item">
         <img
             class="thumbnail"
@@ -67,13 +66,4 @@ function createMovie(movieInstance) {
     </div>
     `;
   return item;
-}
-
-function createMoreButton() {
-  const div = document.createElement("div");
-  div.innerHTML = /*html*/ `
-    <button class="more-btn">더보기</button>
-  `;
-
-  return div;
 }
