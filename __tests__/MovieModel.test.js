@@ -7,6 +7,8 @@ describe("MovieModel Class 테스트", () => {
       poster_path: "/test.png",
       title: "테스트",
       vote_average: 4.234,
+      backdrop_path: "/test.png",
+      overview: "줄거리",
     };
     const movieModel = new MovieModel(result);
 
@@ -16,5 +18,10 @@ describe("MovieModel Class 테스트", () => {
     );
     expect(movieModel.title).toEqual("테스트");
     expect(movieModel.voteAverage).toEqual("4.2");
+    expect(movieModel.backdropPath).toEqual(
+      "https://media.themoviedb.org/t/p/w1920_and_h1080_face/test.png"
+    );
+    expect(movieModel.overView).toEqual("줄거리");
+    expect(movieModel.myVote).toEqual(0);
   });
 });
