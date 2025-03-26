@@ -330,6 +330,10 @@ footer.footer p:not(:last-child) {
   pointer-events: auto;
   cursor: pointer;
 }
+
+#loading {
+  text-align: center;
+}
 :root {
   --color-white: #ffffff;
   --color-lightblue-90: #0da9fd;

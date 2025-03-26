@@ -201,7 +201,7 @@ function createMovie(movieInstance) {
   const starImagePath = movieInstance.voteAverage === "0.0" ? starImage["empty"] : starImage["filled"];
   item.innerHTML = /*html*/
   `
-    <input hidden id="id" value="${movieInstance.id}">
+    <input hidden value="${movieInstance.id}">
     <div class="item">
         <img
             class="thumbnail"
@@ -493,6 +493,25 @@ function updateRating(newRate, movieInstance) {
   myRatingContainer.innerHTML = renderStars(newRate);
   clickStar(movieInstance);
 }
+function initIndicator() {
+  const movieSection = document.querySelector(".movie-list");
+  const div = document.createElement("div");
+  div.id = "loading";
+  div.style = "display: none;";
+  div.innerHTML = /*html*/
+  `
+        Loading...
+    `;
+  movieSection.appendChild(div);
+}
+function showLoadingIndicator() {
+  const loadingIndicator = document.getElementById("loading");
+  loadingIndicator.style.display = "block";
+}
+function hideLoadingIndicator() {
+  const loadingIndicator = document.getElementById("loading");
+  loadingIndicator.style.display = "none";
+}
 const NEXTPAGE_NUM = 1;
 const FIRST_PAGE = 1;
 class Main {
@@ -518,6 +537,7 @@ class Main {
       initHeader(movieListInstance.firstMovie);
       initNav();
       initMovieRender(movieListInstance, "지금 인기있는 영화 ");
+      initIndicator();
       initFooter();
       __privateMethod(this, _Main_instances, enrollClickEvent_fn).call(this);
     });
@@ -543,7 +563,9 @@ handleScroll_fn = function() {
 getMovieNextPage_fn = async function() {
   __privateMethod(this, _Main_instances, nextPage_fn).call(this);
   __privateGet(this, _movieApiQuery).updatePage(__privateGet(this, _page3));
+  showLoadingIndicator();
   const movieListInstance = await getMovie(__privateGet(this, _movieApiQuery));
+  hideLoadingIndicator();
   __privateGet(this, _movieList).push(...movieListInstance.movieModels);
   __privateSet(this, _page3, movieListInstance.page);
   addMovieRender(movieListInstance);
@@ -568,11 +590,14 @@ clickSearchButton_fn = function() {
 movieInfolick_fn = function() {
   const movieInfo = document.querySelectorAll(".item");
   movieInfo.forEach((info) => {
-    info.addEventListener("click", () => {
-      const movieItem = info.closest(".movie");
-      const id = movieItem.querySelector("#id").value;
-      openModal(__privateMethod(this, _Main_instances, getMovieById_fn).call(this, id));
-    });
+    if (!info.dataset.hasClickHandler) {
+      info.addEventListener("click", () => {
+        const movieItem = info.closest(".movie");
+        const id = movieItem.querySelector("#id").value;
+        openModal(__privateMethod(this, _Main_instances, getMovieById_fn).call(this, id));
+      });
+      info.dataset.hasClickHandler = true;
+    }
   });
 };
 searchMovie_fn = async function(inputValue) {
