@@ -201,7 +201,7 @@ function createMovie(movieInstance) {
   const starImagePath = movieInstance.voteAverage === "0.0" ? starImage["empty"] : starImage["filled"];
   item.innerHTML = /*html*/
   `
-    <input hidden value="${movieInstance.id}">
+    <input hidden id="id" value="${movieInstance.id}">
     <div class="item">
         <img
             class="thumbnail"
