@@ -6,6 +6,11 @@ import { initNav } from "./component/Nav.js";
 import { initFooter } from "./component/Footer.js";
 import MovieSearchApiQuery from "./api/MovieSearchApiQuery.js";
 import { openModal } from "./component/Modal.js";
+import {
+  hideLoadingIndicator,
+  initIndicator,
+  showLoadingIndicator,
+} from "./component/Indicator.js";
 
 const NEXTPAGE_NUM = 1;
 const FIRST_PAGE = 1;
@@ -31,6 +36,7 @@ class Main {
       initHeader(movieListInstance.firstMovie);
       initNav();
       initMovieRender(movieListInstance, "지금 인기있는 영화 ");
+      initIndicator();
       initFooter();
 
       this.#enrollClickEvent();
@@ -60,7 +66,10 @@ class Main {
     this.#nextPage();
     this.#movieApiQuery.updatePage(this.#page);
 
+    showLoadingIndicator();
     const movieListInstance = await getMovie(this.#movieApiQuery);
+    hideLoadingIndicator();
+
     this.#movieList.push(...movieListInstance.movieModels);
     this.#page = movieListInstance.page;
     addMovieRender(movieListInstance);
@@ -93,11 +102,14 @@ class Main {
     const movieInfo = document.querySelectorAll(".item");
 
     movieInfo.forEach((info) => {
-      info.addEventListener("click", () => {
-        const movieItem = info.closest(".movie");
-        const id = movieItem.querySelector("#id").value;
-        openModal(this.#getMovieById(id));
-      });
+      if (!info.dataset.hasClickHandler) {
+        info.addEventListener("click", () => {
+          const movieItem = info.closest(".movie");
+          const id = movieItem.querySelector("#id").value;
+          openModal(this.#getMovieById(id));
+        });
+        info.dataset.hasClickHandler = true;
+      }
     });
   }
 

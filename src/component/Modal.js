@@ -16,7 +16,7 @@ export function openModal(movieInstance) {
   div.innerHTML = /*html*/ `
     <div class="modal">
         <button class="close-modal" id="closeModal">
-            <img src="./images/modal_button_close.png" />
+            <img src="modal_button_close.png" />
         </button>
         <div class="modal-container">
             <div class="modal-image">

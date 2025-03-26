@@ -189,3 +189,7 @@ footer.footer p:not(:last-child) {
   pointer-events: auto;
   cursor: pointer;
 }
+
+#loading {
+  text-align: center;
+}
